@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Dom\Attr;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -44,5 +46,12 @@ class Post extends Model
         public function tags()
         {
             return $this->belongsToMany(Tag::class);
+        }
+
+        protected function image(): Attribute
+        {
+            return new Attribute(
+                get: fn () => $this->image_path ?? asset('images/default/post-default.jpg')
+            );
         }
 }

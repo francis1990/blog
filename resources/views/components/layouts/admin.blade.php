@@ -11,6 +11,9 @@
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+        @stack('css')
+
+
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 @fluxAppearance
     </head>
@@ -26,6 +29,7 @@
                 <flux:navlist.group :heading="__('Platform')" class="grid">
                     <flux:navlist.item icon="home" :href="route('admin.dashboard')" :current="request()->routeIs('admin.dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                     <flux:navlist.item icon="arrow-up-on-square" :href="route('admin.categories.index')" :current="request()->routeIs('admin.categories.*')" wire:navigate>{{ __('Categories') }}</flux:navlist.item>
+                    <flux:navlist.item icon="book-open" :href="route('admin.posts.index')" :current="request()->routeIs('admin.posts.*')" wire:navigate>{{ __('Posts') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
@@ -169,6 +173,6 @@
     @endif
 
     @stack('js')
-    
+
     </body>
 </html>
