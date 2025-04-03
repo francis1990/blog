@@ -1,5 +1,7 @@
 <x-layouts.admin>
-
+    @push('css')
+        <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+    @endpush
     <div class="mb-4">
         <flux:breadcrumbs>
             <flux:breadcrumbs.item href="{{ route('admin.dashboard') }}">Dashboard</flux:breadcrumbs.item>
@@ -10,19 +12,27 @@
     <h1 class="text-3xl font-semibold mb-2">
         Edit Post
     </h1>
-    <form action="{{ route('admin.posts.update', $post) }}" method="POST" class="bg-white px-6 py-8 rounded-lg shadow-lg space-y-4">
+    <form
+        action="{{ route('admin.posts.update', $post) }}"
+        method="POST"
+        class="bg-white px-6 py-8 rounded-lg shadow-lg space-y-4"
+        enctype="multipart/form-data"
+    >
         @csrf
         @method('PUT')
 
         <div class="mb-6 relative">
             <figure>
-                <img class="aspect-[16/9] object-cover object-center w-full" src="{{ $post->image }}" accept="image/*" alt="">
+                <img class="aspect-[16/9] object-cover object-center w-full"
+                src="{{ $post->image }}"
+                alt=""
+                id="image-preview">
             </figure>
 
             <div class="absolute top-8 right-8">
                 <label class="bg-white px-4 py-2 rounded-lg cursor-pointer">
                     Upload image
-                    <input type="file" name="" class="hidden"/>
+                    <input name="image" type="file" accept="image/*" class="hidden" onchange="previewImage(event, '#image-preview')"/>
                 </label>
             </div>
         </div>
@@ -61,11 +71,17 @@
             <div class="alert alert-danger">{{ $message }}</div>
         @enderror
 
-        <flux:textarea wire:model="content" rows="12" label="Content">{{ old('content', $post->content) }}</flux:textarea>
+        <label for="content" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Content</label>
+        <div>
+            <p class="font-medium mb-1"></p>
+            <div id="editor">
+                {{!!old('content', $post->content) }}
+            </div>
+        </div>
+        <textarea class="hidden" name="content" id="content" cols="30" rows="10">{{ old('content', $post->content) }}</textarea>
         @error('content')
             <div class="alert alert-danger">{{ $message }}</div>
         @enderror
-
         <div class="mb-4">
             <!-- Campo hidden para enviar false si el checkbox no está marcado -->
             <input type="hidden" name="is_published" value="0">
@@ -82,5 +98,27 @@
             <flux:button variant="primary" type="submit">Update post</flux:button>
         </div>
     </form>
+
+    @push('js')
+    <script>
+        function previewImage(event, selector) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const output = document.querySelector(selector);
+                output.src = reader.result;
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    </script>
+   <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+   <script>
+    var quill = new Quill('#editor', {
+        theme: 'snow'
+    });
+    quill.on('text-change', function() {
+        document.getElementById('content').value =  quill.root.innerHTML;;
+    });
+</script>
+    @endpush
 
 </x-layouts.admin>

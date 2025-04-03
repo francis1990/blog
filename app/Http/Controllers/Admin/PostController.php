@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Post;
 use App\Models\Tag;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class PostController extends Controller
 {
@@ -83,7 +84,12 @@ class PostController extends Controller
     {
         $data = $request->validate([
             'title' => 'required',
-            'slug' => 'required|unique:posts,slug,' . $post->id,
+            'slug' => [
+                Rule::requiredIf(!$post->published_at),
+                'required|unique:posts,slug,' . $post->id,
+                'string',
+                'max:255',
+            ],
             'content' => 'required',
             'excerpt' => 'required',
             'category_id' => 'required|exists:categories,id',
