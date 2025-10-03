@@ -32,7 +32,7 @@
                     'bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded' => $post->is_published,
                     'bg-red-100 text-red-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded' => !$post->is_published,
                 ])>
-                    {{ $post->is_published ? 'Published' : 'Draft' }}
+                    {{ ucfirst($post->status->value()) }}
                 </span>
 
                 <p class="text-gray-700 mt-2">

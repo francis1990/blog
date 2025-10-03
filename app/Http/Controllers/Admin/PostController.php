@@ -3,14 +3,23 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdatePostRequest;
+use App\Jobs\ResizeImage;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\Tag;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
+use App\Services\ImageService;
+use App\ValueObjects\PostStatus;
+use Illuminate\Container\Attributes\Storage;
+use Intervention\Image\Laravel\Facades\Image;
 
 class PostController extends Controller
 {
+    public function __construct(private ImageService $imageService)
+    {
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -36,15 +45,11 @@ class PostController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StorePostRequest $request)
     {
-        $data = $request->validate([
-            'title' => 'required',
-            'slug' => 'required|unique:posts',
-            'content' => 'required',
-            'excerpt' => 'required',
-            'category_id' => 'required|exists:categories,id'
-        ]);
+        $data = $request->validate();
+
+        $data['status'] = PostStatus::from($data['status'] ?? PostStatus::DRAFT);;
 
         Post::create($data);
 
@@ -80,42 +85,42 @@ class PostController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Post $post)
+    public function update(UpdatePostRequest $request, Post $post)
     {
-        $data = $request->validate([
-            'title' => 'required',
-            'slug' => [
-                Rule::requiredIf(!$post->published_at),
-                'required|unique:posts,slug,' . $post->id,
-                'string',
-                'max:255',
-            ],
-            'content' => 'required',
-            'excerpt' => 'required',
-            'category_id' => 'required|exists:categories,id',
-            'is_published' => 'required|boolean',
-            'tags' => 'nullable|array'
-        ]);
+        $data = $request->validated();
 
-        $tags=[];
+        $data['status'] = PostStatus::from($data['status'] ?? PostStatus::DRAFT);
 
-        if($request->tags){
-            foreach($request->tags ?? [] as $tag){
-                $tag = Tag::firstOrCreate(['name'=>$tag]);
+        if ($request->hasFile('image')) {
+            $this->imageService->delete($post->image_path);
+
+           ResizeImage::dispatch(
+            $request->file('image')->store('posts', 'public'),
+            800,
+            600
+        );
+
+    }
+
+        $tags = [];
+        if ($request->tags) {
+            foreach ($request->tags ?? [] as $tag) {
+                $tag = Tag::firstOrCreate(['name' => $tag]);
                 $tags[] = $tag->id;
             }
         }
 
         $post->tags()->sync($tags);
 
-        $post->update($request->all());
+        $post->update($data);
 
         session()->flash('swal', [
             'icon' => 'success',
             'title' => 'Post Updated Successfully',
             'text' => 'Post has been updated successfully'
         ]);
-       return redirect()->route('admin.posts.index');
+
+        return redirect()->route('admin.posts.index');
     }
 
     /**

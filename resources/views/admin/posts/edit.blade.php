@@ -75,13 +75,23 @@
         <div>
             <p class="font-medium mb-1"></p>
             <div id="editor">
-                {{!!old('content', $post->content) }}
+                {!! old('content', $post->content) !!}
             </div>
         </div>
         <textarea class="hidden" name="content" id="content" cols="30" rows="10">{{ old('content', $post->content) }}</textarea>
         @error('content')
             <div class="alert alert-danger">{{ $message }}</div>
         @enderror
+
+        <label for="status">Status</label>
+        <select name="status" id="status" class="form-control">
+            @foreach (App\ValueObjects\PostStatus::validStatuses() as $status)
+                <option value="{{ $status }}" @selected(old('status', $post->status->value() ?? 'draft') === $status)>
+                    {{ ucfirst($status) }}
+                </option>
+            @endforeach
+        </select>
+
         <div class="mb-4">
             <!-- Campo hidden para enviar false si el checkbox no está marcado -->
             <input type="hidden" name="is_published" value="0">

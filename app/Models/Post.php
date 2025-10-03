@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\ValueObjects\PostStatus;
 use Dom\Attr;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Post extends Model
 {
@@ -17,16 +19,23 @@ class Post extends Model
          'image_path',
          'excerpt',
          'content',
-         'is_published',
+         'status',
          'published_at',
          'user_id',
          'category_id'
         ];
 
         protected $casts = [
-            'is_published' => 'boolean',
             'published_at' => 'datetime',
         ];
+
+        protected function status(): Attribute
+        {
+            return new Attribute(
+                get: fn ($value) => PostStatus::from($value?? PostStatus::DRAFT),
+                set: fn (PostStatus $status) => $status->value()
+            );
+        }
 
         public function category()
         {
@@ -51,7 +60,9 @@ class Post extends Model
         protected function image(): Attribute
         {
             return new Attribute(
-                get: fn () => $this->image_path ?? asset('images/default/post-default.jpg')
+                get: fn () => $this->image_path
+                    ? Storage::url($this->image_path)
+                    : asset('images/default/post-default.jpg')
             );
         }
 }

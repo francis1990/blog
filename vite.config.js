@@ -14,5 +14,18 @@ export default defineConfig({
     ],
     server: {
         cors: true,
+        host: '0.0.0.0',
+        port: 5173,
+        hmr: {
+            host: 'localhost',
+        },
+    },
+    build: {
+        outDir: 'public/build',
+        assetsDir: '',
+        manifest: true,
+        rollupOptions: {
+            input: ['resources/css/app.css', 'resources/js/app.js'],
+        },
     },
 });
